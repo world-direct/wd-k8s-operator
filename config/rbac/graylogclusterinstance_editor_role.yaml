@@ -1,0 +1,24 @@
+# permissions for end users to edit graylogclusterinstances.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: graylogclusterinstance-editor-role
+rules:
+- apiGroups:
+  - logging.world-direct.at
+  resources:
+  - graylogclusterinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - logging.world-direct.at
+  resources:
+  - graylogclusterinstances/status
+  verbs:
+  - get

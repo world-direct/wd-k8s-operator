@@ -16,4 +16,12 @@ resources:
   kind: LoggingSetup
   path: github.com/world-direct/wd-k8s-operator/api/v1alpha1
   version: v1alpha1
+- api:
+    crdVersion: v1
+  controller: true
+  domain: world-direct.at
+  group: logging
+  kind: GraylogClusterInstance
+  path: github.com/world-direct/wd-k8s-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"
