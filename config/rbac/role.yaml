@@ -1,0 +1,34 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - logging.world-direct.at
+  resources:
+  - loggingsetups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - logging.world-direct.at
+  resources:
+  - loggingsetups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - logging.world-direct.at
+  resources:
+  - loggingsetups/status
+  verbs:
+  - get
+  - patch
+  - update
