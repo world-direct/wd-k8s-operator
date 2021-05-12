@@ -1,0 +1,7 @@
+apiVersion: logging.world-direct.at/v1alpha1
+kind: LoggingSetup
+metadata:
+  name: loggingsetup-sample
+spec:
+  # Add fields here
+  foo: bar
