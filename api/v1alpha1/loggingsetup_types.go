@@ -20,6 +20,13 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// +kubebuilder:validation:Enum=Namespace
+type Isolations string
+
+const (
+	Isolation_Namespace = "Namespace"
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
@@ -28,8 +35,9 @@ type LoggingSetupSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of LoggingSetup. Edit loggingsetup_types.go to remove/update
-	Isolation string `json:"isolation,omitempty"`
+	// Isolation allows to choose how the LoggingSetup will be isolated to others.
+	// Currently only 'Namespace' is supported
+	Isolation Isolations `json:"isolation,omitempty"`
 }
 
 // LoggingSetupStatus defines the observed state of LoggingSetup

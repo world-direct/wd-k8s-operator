@@ -37,8 +37,10 @@ spec:
             description: LoggingSetupSpec defines the desired state of LoggingSetup
             properties:
               isolation:
-                description: Foo is an example field of LoggingSetup. Edit loggingsetup_types.go
-                  to remove/update
+                description: Isolation allows to choose how the LoggingSetup will
+                  be isolated to others. Currently only 'Namespace' is supported
+                enum:
+                - Namespace
                 type: string
             type: object
           status:

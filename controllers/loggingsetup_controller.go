@@ -67,7 +67,8 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{}, err
 	}
 
-	// check for the created User
+	// check for the created LoggingSetup
+	log.Info("Reconcile created instance")
 
 	return ctrl.Result{}, nil
 }
