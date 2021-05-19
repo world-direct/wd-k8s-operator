@@ -22,7 +22,7 @@ var (
 	gl_password = os.Getenv("GRAYLOG_PASSWORD")
 )
 
-func main() {
+func mainx() {
 	Provision(context.Background(), "testproj", "addq2eq13123123")
 }
 
