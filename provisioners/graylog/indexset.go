@@ -39,7 +39,7 @@ func ProvisionIndexSet(ctx context.Context, log logr.Logger, data *GraylogProvis
 	var templateIndexSetId string
 	for _, set := range sets.IndexSets {
 		if set.Title == data.Name {
-			data.IndexSet.id = set.Id
+			data.IndexSet.ID = set.Id
 			log.Info("Indexset already provisioned")
 			return nil
 		}

@@ -55,7 +55,7 @@ func ProvisionUser(ctx context.Context, log logr.Logger, data *GraylogProvisioni
 	// check user existance
 	user, err := client.tryGetUserByName(ctx, data.Name)
 	if user != nil {
-		data.User.id = user.ID
+		data.User.ID = user.ID
 		log.Info("User already provisioned")
 		return nil
 	} else if err != nil {
@@ -86,7 +86,7 @@ func ProvisionUser(ctx context.Context, log logr.Logger, data *GraylogProvisioni
 		return err
 	}
 
-	data.User.id = user.ID
+	data.User.ID = user.ID
 
 	return nil
 }

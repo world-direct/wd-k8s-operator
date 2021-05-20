@@ -46,6 +46,9 @@ type LoggingSetupSpec struct {
 
 type GraylogStatus struct {
 
+	// UserID contains the ID of the IndexSet in Graylog
+	UserID string `json:"userID,omitempty"`
+
 	// IndexSetID contains the ID of the IndexSet in Graylog
 	IndexSetID string `json:"indexSetID,omitempty"`
 
@@ -63,7 +66,7 @@ type LoggingSetupStatus struct {
 
 	// GraylogStatus contains data needed for Reconcilation, specially generated IDs.
 	// ATTENTION: These values are not stored anywhere elso, so don't change them please.
-	GraylogStatus GraylogStatus `json:"internal,omitempty"`
+	GraylogStatus GraylogStatus `json:"graylogInternal,omitempty"`
 
 	// Conditions represent the latest available observations of an object's state
 	Conditions []metav1.Condition `json:"conditions"`

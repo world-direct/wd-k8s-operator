@@ -52,7 +52,7 @@ func ProvisionStream(ctx context.Context, log logr.Logger, data *GraylogProvisio
 	for _, stream := range streams.Streams {
 		if stream.Title == data.Name {
 			log.Info("Stream already provisioned")
-			data.Stream.id = stream.Id
+			data.Stream.ID = stream.Id
 			return nil
 		}
 	}
@@ -61,7 +61,7 @@ func ProvisionStream(ctx context.Context, log logr.Logger, data *GraylogProvisio
 	stream := glStream{
 		Title:                          data.Name,
 		Description:                    data.Name + "@" + OPERATOR_INFO,
-		IndexSetID:                     data.IndexSet.id,
+		IndexSetID:                     data.IndexSet.ID,
 		RemoveMatchesFromDefaultStream: true,
 		Rules: []glStreamRule{
 			{
@@ -81,11 +81,11 @@ func ProvisionStream(ctx context.Context, log logr.Logger, data *GraylogProvisio
 		return err
 	}
 
-	data.Stream.id = response.StreamId
+	data.Stream.ID = response.StreamId
 	log.Info("Stream created", "stream", stream)
 
 	// start the stream
-	err = client.callAPIExpect(ctx, "POST", "/api/streams/"+data.Stream.id+"/resume", nil, nil, 204)
+	err = client.callAPIExpect(ctx, "POST", "/api/streams/"+data.Stream.ID+"/resume", nil, nil, 204)
 	if err != nil {
 		return err
 	}
@@ -106,12 +106,12 @@ func ProvisionStream(ctx context.Context, log logr.Logger, data *GraylogProvisio
 
 	*/
 
-	grn := "grn::::stream:" + data.Stream.id
+	grn := "grn::::stream:" + data.Stream.ID
 
 	share_request := struct {
 		Selected_grantee_capabilities map[string]interface{} `json:"selected_grantee_capabilities,omitempty"`
 	}{map[string]interface{}{
-		"grn::::user:" + data.User.id: "view",
+		"grn::::user:" + data.User.ID: "view",
 	}}
 
 	err = client.callAPIExpect(ctx, "POST", "/api/authz/shares/entities/"+grn, share_request, nil, 200)

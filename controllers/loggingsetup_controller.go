@@ -111,6 +111,8 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				Status: metav1.ConditionTrue,
 				Reason: "Done",
 			})
+
+			obj.Status.GraylogStatus.UserID = data.User.ID
 		}
 	}
 
@@ -134,6 +136,9 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				Status: metav1.ConditionTrue,
 				Reason: "Done",
 			})
+
+			obj.Status.GraylogStatus.IndexSetID = data.IndexSet.ID
+
 		}
 	}
 
@@ -157,6 +162,8 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				Status: metav1.ConditionTrue,
 				Reason: "Done",
 			})
+
+			obj.Status.GraylogStatus.StreamID = data.Stream.ID
 		}
 	}
 

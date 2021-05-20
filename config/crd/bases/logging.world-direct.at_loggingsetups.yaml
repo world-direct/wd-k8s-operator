@@ -122,7 +122,7 @@ spec:
                   - type
                   type: object
                 type: array
-              internal:
+              graylogInternal:
                 description: 'GraylogStatus contains data needed for Reconcilation,
                   specially generated IDs. ATTENTION: These values are not stored
                   anywhere elso, so don''t change them please.'
@@ -132,6 +132,9 @@ spec:
                     type: string
                   streamID:
                     description: UserID contains the ID of the Stream in Graylog
+                    type: string
+                  userID:
+                    description: UserID contains the ID of the IndexSet in Graylog
                     type: string
                 type: object
               userName:

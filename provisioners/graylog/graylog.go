@@ -29,14 +29,14 @@ type GraylogProvisioningData struct {
 		InitialPassword string
 		Roles           []string
 
-		id string
+		ID string
 	}
 
 	// IndexSet data
 	IndexSet struct {
 		TemplateName string
 
-		id string
+		ID string
 	}
 
 	// Stream data
@@ -45,7 +45,7 @@ type GraylogProvisioningData struct {
 		// The FieldName to match 'Name'
 		RuleFieldName string
 
-		id string
+		ID string
 	}
 }
 
