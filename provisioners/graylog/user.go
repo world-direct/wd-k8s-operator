@@ -90,3 +90,28 @@ func ProvisionUser(ctx context.Context, log logr.Logger, data *GraylogProvisioni
 
 	return nil
 }
+
+func DeleteUser(ctx context.Context, log logr.Logger, id string) error {
+
+	var (
+		err error
+	)
+
+	log.Info("Delete User", "userID", id)
+
+	client, err := CreateClient(log)
+	if err != nil {
+		return err
+	}
+
+	sc, err := client.callAPI(ctx, "DELETE", "/api/users/id/"+id, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if sc != 204 && sc != 404 {
+		return errors.Errorf("API Call returned status %d", sc)
+	}
+
+	return nil
+}

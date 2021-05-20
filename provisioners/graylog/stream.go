@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 )
 
 // StreamRule represents a stream rule.
@@ -120,6 +121,31 @@ func ProvisionStream(ctx context.Context, log logr.Logger, data *GraylogProvisio
 	}
 
 	log.Info("Stream started")
+
+	return nil
+}
+
+func DeleteStream(ctx context.Context, log logr.Logger, id string) error {
+
+	var (
+		err error
+	)
+
+	log.Info("Delete Stream", "streamID", id)
+
+	client, err := CreateClient(log)
+	if err != nil {
+		return err
+	}
+
+	sc, err := client.callAPI(ctx, "DELETE", "/api/streams/"+id, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if sc != 204 && sc != 404 {
+		return errors.Errorf("API Call returned status %d", sc)
+	}
 
 	return nil
 }

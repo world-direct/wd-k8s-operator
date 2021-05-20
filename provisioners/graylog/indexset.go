@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
 )
 
 type glIndexSetBasicInfo struct {
@@ -68,6 +69,31 @@ func ProvisionIndexSet(ctx context.Context, log logr.Logger, data *GraylogProvis
 	err = client.callAPIExpect(ctx, "POST", "/api/system/indices/index_sets", indexSet, nil, 200)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func DeleteIndexSet(ctx context.Context, log logr.Logger, id string) error {
+
+	var (
+		err error
+	)
+
+	log.Info("Delete IndexSet", "indesSetID", id)
+
+	client, err := CreateClient(log)
+	if err != nil {
+		return err
+	}
+
+	sc, err := client.callAPI(ctx, "DELETE", "/system/indices/index_sets/"+id, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	if sc != 204 && sc != 404 {
+		return errors.Errorf("API Call returned status %d", sc)
 	}
 
 	return nil

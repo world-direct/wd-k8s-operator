@@ -25,7 +25,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
+	"github.com/world-direct/wd-k8s-operator/api/v1alpha1"
 	loggingv1alpha1 "github.com/world-direct/wd-k8s-operator/api/v1alpha1"
 	graylog "github.com/world-direct/wd-k8s-operator/provisioners/graylog"
 
@@ -43,6 +45,8 @@ const (
 	CONDIIONTYPE_USER     = "UserProvisioned"
 	CONDIIONTYPE_INDEXSET = "IndexSetProvisioned"
 	CONDIIONTYPE_STREAM   = "StreamProvisioned"
+
+	FINALIZER = "logging.world-direct.at/finalizer"
 )
 
 //+kubebuilder:rbac:groups=logging.world-direct.at,resources=loggingsetups,verbs=get;list;watch;create;update;patch;delete
@@ -79,7 +83,7 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// check for the created LoggingSetup
-	log.Info("Reconcile created instance")
+	log.Info("Reconcile object", "Object", obj)
 
 	// collect data for provisioning
 	data := &graylog.GraylogProvisioningData{
@@ -88,8 +92,49 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	data.User.InitialPassword = obj.Spec.InitialUserPassword
 	data.User.Roles = []string{"Reader", "Dashboard Creator"}
+	data.User.ID = obj.Status.GraylogStatus.UserID
+
 	data.IndexSet.TemplateName = "wd-logging-operator-template"
+	data.IndexSet.ID = obj.Status.GraylogStatus.IndexSetID
+
 	data.Stream.RuleFieldName = "kubernetes_namespace_name"
+	data.Stream.ID = obj.Status.GraylogStatus.StreamID
+
+	// Check if the instance is marked to be deleted, which is
+	// indicated by the deletion timestamp being set.
+	isMarkedToBeDeleted := obj.GetDeletionTimestamp() != nil
+	if isMarkedToBeDeleted {
+		if controllerutil.ContainsFinalizer(obj, FINALIZER) {
+			// Run finalization logic for memcachedFinalizer. If the
+			// finalization logic fails, don't remove the finalizer so
+			// that we can retry during the next reconciliation.
+			if err := r.finalizeLoggingSetup(ctx, log, obj); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			// Remove memcachedFinalizer. Once all finalizers have been
+			// removed, the object will be deleted.
+			controllerutil.RemoveFinalizer(obj, FINALIZER)
+			err := r.Update(ctx, obj)
+			if err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+		return ctrl.Result{}, nil
+	}
+
+	// Add finalizer for this CR
+	if !controllerutil.ContainsFinalizer(obj, FINALIZER) {
+		controllerutil.AddFinalizer(obj, FINALIZER)
+
+		// Update the object
+		////////////////////////////7
+		err = r.Update(ctx, obj)
+		if err != nil {
+			// need to stop here to avoid object without finalizers
+			return ctrl.Result{}, err
+		}
+	}
 
 	if true || !meta.IsStatusConditionTrue(obj.Status.Conditions, CONDIIONTYPE_USER) {
 
@@ -167,16 +212,43 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	// Update the Status
+	// Update the status
 	////////////////////////////7
-
 	updateErr := r.Status().Update(ctx, obj)
 	if updateErr != nil {
 		// this error is not updated to the condition, just logged
-		log.Error(updateErr, "Failed to update Object")
+		log.Error(updateErr, "Failed to update Status")
 	}
 
 	return ctrl.Result{}, err
+}
+
+func (r *LoggingSetupReconciler) finalizeLoggingSetup(ctx context.Context, log logr.Logger, obj *v1alpha1.LoggingSetup) error {
+	log.Info("Finalization: Deleting Graylog Resources")
+
+	var (
+		err error
+	)
+
+	err = graylog.DeleteStream(ctx, log, obj.Status.GraylogStatus.StreamID)
+	if err != nil {
+		log.Error(err, "Error deleting Stream")
+		return err
+	}
+
+	err = graylog.DeleteIndexSet(ctx, log, obj.Status.GraylogStatus.IndexSetID)
+	if err != nil {
+		log.Error(err, "Error deleting IndexSet")
+		return err
+	}
+
+	err = graylog.DeleteUser(ctx, log, obj.Status.GraylogStatus.UserID)
+	if err != nil {
+		log.Error(err, "Error deleting User")
+		return err
+	}
+
+	return nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
