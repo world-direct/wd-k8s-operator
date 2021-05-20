@@ -2,9 +2,8 @@ apiVersion: logging.world-direct.at/v1alpha1
 kind: LoggingSetup
 metadata:
   name: loggingsetup-sample
-  labels:
-    b: a
 spec:
   # Specify that we choose Namespace isolation.
   # This creates the Graylog Stream with a Rule `kubernetes_namespace_name == <namespace of LoggingSetup>`
-  isolation: Namespace
+  isolation: Namespace      
+  initialUserPassword: changeme1234!

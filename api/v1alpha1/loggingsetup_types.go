@@ -38,6 +38,19 @@ type LoggingSetupSpec struct {
 	// Isolation allows to choose how the LoggingSetup will be isolated to others.
 	// Currently only 'Namespace' is supported
 	Isolation Isolations `json:"isolation,omitempty"`
+
+	// InitialPassword defines the password used to create the Graylog user.
+	// It is only set when the user is created, you can change it afterwards in Graylog
+	InitialUserPassword string `json:"initialUserPassword,omitempty"`
+}
+
+type GraylogStatus struct {
+
+	// IndexSetID contains the ID of the IndexSet in Graylog
+	IndexSetID string `json:"indexSetID,omitempty"`
+
+	// UserID contains the ID of the Stream in Graylog
+	StreamID string `json:"streamID,omitempty"`
 }
 
 // LoggingSetupStatus defines the observed state of LoggingSetup
@@ -45,8 +58,15 @@ type LoggingSetupStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	UserName        string `json:"userName,omitempty"`
-	InitialPassword string `json:"initialPassword,omitempty"`
+	// UserName Contains the name of the generated User to logon to graylog
+	UserName string `json:"userName,omitempty"`
+
+	// GraylogStatus contains data needed for Reconcilation, specially generated IDs.
+	// ATTENTION: These values are not stored anywhere elso, so don't change them please.
+	GraylogStatus GraylogStatus `json:"internal,omitempty"`
+
+	// Conditions represent the latest available observations of an object's state
+	Conditions []metav1.Condition `json:"conditions"`
 }
 
 //+kubebuilder:object:root=true
