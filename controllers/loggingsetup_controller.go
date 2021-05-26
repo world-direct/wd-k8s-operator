@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -83,22 +84,7 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	}
 
 	// check for the created LoggingSetup
-	log.Info("Reconcile object", "Object", obj)
-
-	// collect data for provisioning
-	data := &graylog.GraylogProvisioningData{
-		Name: obj.Namespace,
-	}
-
-	data.User.InitialPassword = obj.Spec.InitialUserPassword
-	data.User.Roles = []string{"Reader", "Dashboard Creator"}
-	data.User.ID = obj.Status.GraylogStatus.UserID
-
-	data.IndexSet.TemplateName = "wd-logging-operator-template"
-	data.IndexSet.ID = obj.Status.GraylogStatus.IndexSetID
-
-	data.Stream.RuleFieldName = "kubernetes_namespace_name"
-	data.Stream.ID = obj.Status.GraylogStatus.StreamID
+	log.Info("Reconcile object", "Object", obj, "resourceVersion", obj.ObjectMeta.ResourceVersion)
 
 	// Check if the instance is marked to be deleted, which is
 	// indicated by the deletion timestamp being set.
@@ -118,6 +104,8 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			err := r.Update(ctx, obj)
 			if err != nil {
 				return ctrl.Result{}, err
+			} else {
+				log.Info("Update performed, Reconciliation done", "resourceVersion", obj.ObjectMeta.ResourceVersion)
 			}
 		}
 		return ctrl.Result{}, nil
@@ -125,6 +113,7 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	// Add finalizer for this CR
 	if !controllerutil.ContainsFinalizer(obj, FINALIZER) {
+		log.Info("Adding finalizer")
 		controllerutil.AddFinalizer(obj, FINALIZER)
 
 		// Update the object
@@ -133,8 +122,48 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if err != nil {
 			// need to stop here to avoid object without finalizers
 			return ctrl.Result{}, err
+		} else {
+			// Requeue here so that we fetch a fresh instance from the API Server
+			// This fixes the ""Operation cannot be fulfilled on loggingsetups.logging.world-direct.at \"loggingsetup-sample\": the object has been modified"
+			log.Info("Update performed, requeue for futher processing", "resourceVersion", obj.ObjectMeta.ResourceVersion)
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 1}, nil
 		}
 	}
+
+	r.provisionLoggingSetup(ctx, log, obj)
+
+	// Update the status
+	////////////////////////////
+	log.Info("Update Object Status", "resourceVersion", obj.ObjectMeta.ResourceVersion)
+	updateErr := r.Status().Update(ctx, obj)
+	if updateErr != nil {
+		// this error is not updated to the condition, just logged
+		log.Error(updateErr, "Failed to update Status")
+	} else {
+		log.Info("Update performed, Reconciliation done", "resourceVersion", obj.ObjectMeta.ResourceVersion)
+	}
+
+	return ctrl.Result{}, err
+}
+
+func (r *LoggingSetupReconciler) provisionLoggingSetup(ctx context.Context, log logr.Logger, obj *v1alpha1.LoggingSetup) {
+
+	var err error
+
+	// collect data for provisioning
+	data := &graylog.GraylogProvisioningData{
+		Name: obj.Namespace,
+	}
+
+	data.User.InitialPassword = obj.Spec.InitialUserPassword
+	data.User.Roles = []string{"Reader", "Dashboard Creator"}
+	data.User.ID = obj.Status.GraylogStatus.UserID
+
+	data.IndexSet.TemplateName = "wd-logging-operator-template"
+	data.IndexSet.ID = obj.Status.GraylogStatus.IndexSetID
+
+	data.Stream.RuleFieldName = "kubernetes_namespace_name"
+	data.Stream.ID = obj.Status.GraylogStatus.StreamID
 
 	if true || !meta.IsStatusConditionTrue(obj.Status.Conditions, CONDIIONTYPE_USER) {
 
@@ -212,15 +241,6 @@ func (r *LoggingSetupReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
-	// Update the status
-	////////////////////////////7
-	updateErr := r.Status().Update(ctx, obj)
-	if updateErr != nil {
-		// this error is not updated to the condition, just logged
-		log.Error(updateErr, "Failed to update Status")
-	}
-
-	return ctrl.Result{}, err
 }
 
 func (r *LoggingSetupReconciler) finalizeLoggingSetup(ctx context.Context, log logr.Logger, obj *v1alpha1.LoggingSetup) error {
