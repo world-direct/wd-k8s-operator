@@ -192,3 +192,7 @@ catalog-build: opm ## Build a catalog image.
 .PHONY: catalog-push
 catalog-push: ## Push a catalog image.
 	$(MAKE) docker-push IMG=$(CATALOG_IMG)
+
+
+single-manifest: manifests kustomize
+	kubectl kustomize config/default > config/wd-k8s-operator.yaml
