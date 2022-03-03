@@ -16,8 +16,9 @@ type glUser struct {
 	// the contact email address
 	Email string `json:"email,omitempty"`
 	// a descriptive name for this account, e.g. the full name.
-	FullName string `json:"full_name,omitempty"`
-	Password string `json:"password,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	Password  string `json:"password,omitempty"`
 
 	ID string `json:"id,omitempty"`
 
@@ -65,7 +66,8 @@ func ProvisionUser(ctx context.Context, log logr.Logger, data *GraylogProvisioni
 	// initialize the user
 	user = &glUser{
 		Username:    data.Name,
-		FullName:    data.Name,
+		FirstName:   data.Name,
+		LastName:    data.Name,
 		Password:    data.User.InitialPassword,
 		Email:       data.Name + "@" + OPERATOR_INFO,
 		Roles:       data.User.Roles,
